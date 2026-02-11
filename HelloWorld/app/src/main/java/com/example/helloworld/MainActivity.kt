@@ -90,8 +90,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
     override fun onSensorChanged(event: SensorEvent?) {
         if (event != null) {
             val visualizador = findViewById<TextView>(R.id.visualizador)
-            visualizador.text = "Acelerómetro: x=${event.values[0]}, y=${event.values[1]}, z=${event.values[2]}"
-        }
+            visualizador.text = String.format("x=%.2f y=%.2f z=%.2f ",event.values[0], event.values[1], event.values[2])        }
     }
 
     override fun onLocationChanged(location: Location) {
