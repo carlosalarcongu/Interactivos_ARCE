@@ -7,6 +7,7 @@ import android.hardware.SensorManager
 import android.os.Bundle
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import android.widget.Toast
 
 class MainActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
@@ -37,7 +38,23 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     override fun onSensorChanged(event: SensorEvent?) {
         if (event != null) {
             val visualizador = findViewById<TextView>(R.id.visualizador)
-            visualizador.text = getString(R.string.accelerometer_data, event.values[0], event.values[1], event.values[2])
+
+            val x = event.values[0]
+            val y = event.values[1]
+            val z = event.values[2]
+
+            val magnitud = Math.sqrt((x * x + y * y + z * z).toDouble())
+
+            val umbralAccidente = 20.0
+
+            if (magnitud > umbralAccidente) {
+                //Toast.makeText(this, "¡Accidente detectado!", Toast.LENGTH_LONG).show()
+
+            } else {
+                visualizador.text = getString(R.string.accelerometer_data, x, y, z)
+                visualizador.setTextColor(android.graphics.Color.BLACK) // Color normal
+                visualizador.textSize = 14f // Tamaño normal
+            }
         }
     }
 }
