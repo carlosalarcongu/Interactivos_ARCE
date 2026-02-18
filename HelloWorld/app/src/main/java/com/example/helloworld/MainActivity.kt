@@ -205,7 +205,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
         // Inicializamos TTS para evitar fugas de memoria, Alejandro lo configurará
         tts = TextToSpeech(this) { status ->
             if (status == TextToSpeech.SUCCESS) {
-                tts?.language = Locale("es", "ES")
+                tts?.language = Locale.Builder().setLanguage("es").setRegion("ES").build()
             }
         }
     }
