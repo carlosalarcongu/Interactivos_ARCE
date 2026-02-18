@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">HelloWorld</string>
+    <string name="app_name">A.R.C.E Running</string>
     <string name="accelerometer_data">X: %1$.2f\nY: %2$.2f\nZ: %3$.2f</string>
     <string name="monitor_de_sensores">Monitor de Sensores</string>
     <string name="aceler_metro">🚀 ACELERÓMETRO</string>
@@ -9,4 +9,6 @@
     <string name="umbral_accidente">⚙️ UMBRAL ACCIDENTE</string>
     <string name="sensibilidad_g_force">Sensibilidad (G-Force)</string>
     <string name="_20_0">20.0</string>
+    <string name="a_r_c_e_running">A.R.C.E Running</string>
+    <string name="oro">ORO</string>
 </resources>
