@@ -17,9 +17,10 @@ import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
@@ -29,124 +30,73 @@ import com.google.android.material.textfield.TextInputEditText
 import org.osmdroid.config.Configuration
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
-import java.util.Locale
 import org.osmdroid.views.overlay.Marker
+import java.util.Locale
 
 class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener {
 
-    // --- 1. VARIABLES DEL SISTEMA (Tu código antiguo + Integración) ---
-
-    // Sensores (Acelerómetro)
+    // --- SENSORES (Acelerómetro) ---
     private lateinit var sensorManager: SensorManager
     private var accelerometer: Sensor? = null
     private lateinit var inputUmbral: TextInputEditText
     private lateinit var visualizador: TextView
     private var ultimoAvisoAccidente: Long = 0
 
-    // GPS (Responsabilidad de Carlos)
+    // --- LOCALIZACIÓN (LocationManager) ---
     private lateinit var locationManager: LocationManager
-    private lateinit var textoGPS: TextView // Para mostrar coords en tu tarjeta
+    private lateinit var textoGPS: TextView
 
-    // --- 2. VARIABLES PARA EL EQUIPO (Placeholders) ---
-
-    // Mapa
+    // --- VARIABLES DE EQUIPO ---
     private lateinit var map: MapView
-    private var marcador:Marker? = null
-
-    // ALEJANDRO (Voz y Velocidad)
+    private var marcador: Marker? = null
     private var tts: TextToSpeech? = null
+    private var ttsListo = false
+
+    // Alejandro (Voz y Velocidad)
     private var primeraLocalizacion: Location? = null
     private var ultimaLocalizacion: Location? = null
     private var tiempoInicio: Long = 0L
+    private val handlerMensajes = Handler(Looper.getMainLooper())
+    private var mensajesIniciados = false
 
-    // RAÚL (Notificaciones)
     private val CHANNEL_ID = "canal_caidas"
-
-    // --- 3. GESTIÓN DE PERMISOS (Carlos) ---
-    private val permisoGPSLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
-            permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
-        ) {
-            iniciarGPS()
-        } else {
-            Toast.makeText(this, "Permiso de ubicación denegado", Toast.LENGTH_LONG).show()
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Configuración de OSMDroid
+        // Configuración para el mapa de Esther
         Configuration.getInstance().userAgentValue = packageName
-
         setContentView(R.layout.activity_main)
 
-        // Inicializar Vistas (Vinculando con tu XML nuevo)
+        // Vincular Vistas
         inputUmbral = findViewById(R.id.inputUmbral)
         visualizador = findViewById(R.id.visualizador)
-        textoGPS = findViewById(R.id.textView) // Tu TextView del GPS
+        textoGPS = findViewById(R.id.textView)
 
-        // --- INICIALIZAR SENSORES (Tu código antiguo) ---
+        // 1. Inicializar SensorManager y Acelerómetro (Basado en Diapositivas)
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
-        // --- INICIALIZAR MÓDULOS DEL EQUIPO ---
-        inicializarMapa()
-        inicializarVozAlejandro()
-        inicializarNotificaciones()
-
-        // --- INICIALIZAR GPS (Tu responsabilidad principal) ---
+        // 2. Inicializar LocationManager para el GPS
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        comprobarPermisoGPS()
+
+        inicializarMapa()
+        inicializarVoz()
+        inicializarNotificaciones()
+        comprobarPermisos()
     }
 
-    // ==========================================
-    // PARTE 1: GESTIÓN DEL GPS (CARLOS)
-    // ==========================================
-
-    private fun comprobarPermisoGPS() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            iniciarGPS()
-        } else {
-            permisoGPSLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
+    private fun inicializarVoz() {
+        tts = TextToSpeech(this) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                tts?.setLanguage(Locale("es", "ES"))
+                ttsListo = true
+            }
         }
     }
 
-    private fun iniciarGPS() {
-        try {
-            // Actualización agresiva (para que funcione bien en tu S25)
-            // Pedimos tanto a GPS (Satélite) como a NETWORK (Wifi/Antenas)
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L, 0f, this)
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000L, 0f, this)
-
-            Toast.makeText(this, "Buscando satélites...", Toast.LENGTH_SHORT).show()
-        } catch (_: SecurityException) {
-            Toast.makeText(this, "Error de seguridad GPS", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    // ESTE ES EL MÉTODO "DIRECTOR DE ORQUESTA"
-    override fun onLocationChanged(location: Location) {
-        // 1. Actualizar tu interfaz (Carlos)
-        textoGPS.text = "Lat: ${location.latitude}\nLon: ${location.longitude}"
-
-        // 2. Guardar datos globales para Alejandro
-        if (primeraLocalizacion == null) {
-            primeraLocalizacion = location
-            tiempoInicio = System.currentTimeMillis()
-        }
-        ultimaLocalizacion = location
-
-        actualizarMapa(location)
-
-        // 4. Llamar a ALEJANDRO: "Calcula y habla"
-        gestionarVelocidadAlejandro(location)
-    }
-
     // ==========================================
-    // PARTE 2: ACELERÓMETRO (TU CÓDIGO ANTIGUO)
+    // GESTIÓN DE LA CAÍDA (ACELERÓMETRO)
     // ==========================================
 
     override fun onSensorChanged(event: SensorEvent?) {
@@ -156,127 +106,141 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
             val z = event.values[2]
 
             val magnitud = Math.sqrt((x * x + y * y + z * z).toDouble())
-            val umbralAccidente = inputUmbral.text.toString().toDoubleOrNull() ?: 20.0
+            val umbral = inputUmbral.text.toString().toDoubleOrNull() ?: 20.0
 
-            if (magnitud > umbralAccidente) {
+            if (magnitud > umbral) {
                 val ahora = System.currentTimeMillis()
                 if (ahora - ultimoAvisoAccidente > 5000) {
-                    Toast.makeText(this, "¡ACCIDENTE DETECTADO!", Toast.LENGTH_LONG).show()
+                    // Mensaje personalizado solicitado
+                    if (ttsListo) {
+                        tts?.speak("Carlos eres un pringado te has caido", TextToSpeech.QUEUE_FLUSH, null, null)
+                    }
                     lanzarNotificacion(ultimaLocalizacion)
                     ultimoAvisoAccidente = ahora
                 }
             } else {
+                // Visualización en interfaz (Tasa UI ~60ms)
                 visualizador.text = "X: %.2f | Y: %.2f | Z: %.2f".format(x, y, z)
             }
         }
     }
 
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+    // ==========================================
+    // GESTIÓN DE UBICACIÓN (LOCALIZACIÓN)
+    // ==========================================
+
+    override fun onLocationChanged(location: Location) {
+        textoGPS.text = "Lat: ${location.latitude}, Lon: ${location.longitude}"
+
+        // Lógica de Alejandro para calcular velocidad
+        if (primeraLocalizacion == null) {
+            primeraLocalizacion = location
+            tiempoInicio = System.currentTimeMillis()
+            if (!mensajesIniciados) {
+                mensajesIniciados = true
+                iniciarTemporizadorVoz()
+            }
+        }
+        ultimaLocalizacion = location
+        actualizarMapa(location)
+    }
+
+    private fun iniciarTemporizadorVoz() {
+        handlerMensajes.postDelayed(object : Runnable {
+            override fun run() {
+                lanzarMensajeVelocidad()
+                handlerMensajes.postDelayed(this, 60000) // Cada 60 segundos
+            }
+        }, 60000)
+    }
+
+    private fun lanzarMensajeVelocidad() {
+        val p1 = primeraLocalizacion
+        val p2 = ultimaLocalizacion
+        if (ttsListo && p1 != null && p2 != null) {
+            val distancia = p1.distanceTo(p2)
+            val tiempoSegundos = (System.currentTimeMillis() - tiempoInicio) / 1000.0
+            val velocidad = if (tiempoSegundos > 0) (distancia / tiempoSegundos).toFloat() else 0f
+
+            val texto = "Tu velocidad media es de ${String.format("%.2f", velocidad)} metros por segundo"
+            tts?.speak(texto, TextToSpeech.QUEUE_ADD, null, null)
+        }
+    }
 
     // ==========================================
-    // PARTE 3: ZONA DE INTEGRACIÓN (PLACEHOLDERS)
+    // UTILIDADES (PERMISOS, MAPA, NOTIFICACIONES)
     // ==========================================
+
+    private fun comprobarPermisos() {
+        val launcher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+            if (it[Manifest.permission.ACCESS_FINE_LOCATION] == true) {
+                try {
+                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L, 1f, this)
+                } catch (_: SecurityException) {}
+            }
+        }
+        launcher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION))
+    }
 
     private fun inicializarMapa() {
-        try {
-            map = findViewById(R.id.map)
-            map.setMultiTouchControls(true)
-            map.controller.setZoom(15.0)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        map = findViewById(R.id.map)
+        map.controller.setZoom(17.0)
     }
 
     private fun actualizarMapa(location: Location) {
-        try {
-            val punto = GeoPoint(location.latitude, location.longitude)
-            map.controller.setCenter(punto)
-            marcador?.let{map.overlays.remove(it)}
-            marcador = Marker(map).apply {
-                position = punto
-                title = "Mi ubicación"
-            }
-            map.overlays.add(marcador)
-            map.invalidate()
-        } catch (_: Exception) {}
-    }
-
-    private fun inicializarVozAlejandro() {
-        // Inicializamos TTS para evitar fugas de memoria, Alejandro lo configurará
-        tts = TextToSpeech(this) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                tts?.language = Locale("es", "ES")
-            }
-        }
-    }
-
-    private fun gestionarVelocidadAlejandro(location: Location) {
-        // TODO: Alejandro calculará aquí la velocidad
+        val punto = GeoPoint(location.latitude, location.longitude)
+        map.controller.setCenter(punto)
+        marcador?.let { map.overlays.remove(it) }
+        marcador = Marker(map).apply { position = punto }
+        map.overlays.add(marcador)
+        map.invalidate()
     }
 
     private fun inicializarNotificaciones() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val canal = NotificationChannel(
-                CHANNEL_ID,
-                "Detección de caídas",
-                NotificationManager.IMPORTANCE_HIGH
-            )
-            val manager = getSystemService(
-                NotificationManager::class.java
-            )
-            manager?.createNotificationChannel(canal)
+            val canal = NotificationChannel(CHANNEL_ID, "Alertas", NotificationManager.IMPORTANCE_HIGH)
+            getSystemService(NotificationManager::class.java).createNotificationChannel(canal)
         }
     }
 
     private fun lanzarNotificacion(location: Location?) {
-        val uri = Uri.parse("https://www.google.com/maps?q=${location?.latitude},${location?.longitude}")
+        val uri = Uri.parse("geo:${location?.latitude},${location?.longitude}")
         val intent = Intent(Intent.ACTION_VIEW, uri)
-        val pendingIntent =
-            PendingIntent.getActivity(
-                this,
-                0,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or
-                        PendingIntent.FLAG_IMMUTABLE
-            )
-        val builder =
-            NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(
-                    android.R.drawable.ic_dialog_alert
-                )
-                .setContentTitle("Caída detectada")
-                .setContentText(
-                    "Pulsa para ver la ubicación"
-                )
-                .setContentIntent(pendingIntent)
-                .setAutoCancel(true)
-        NotificationManagerCompat
-            .from(this)
-            .notify(1001, builder.build())
+        val pending = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+
+        val builder = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_dialog_alert)
+            .setContentTitle("¡EMERGENCIA!")
+            .setContentText("Carlos se ha caído")
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pending)
+            .setAutoCancel(true)
+
+        try { NotificationManagerCompat.from(this).notify(1001, builder.build()) } catch (_: Exception) {}
     }
 
     // ==========================================
-    // CICLO DE VIDA (LIMPIEZA)
+    // CICLO DE VIDA (GESTIÓN DE SENSORES)
     // ==========================================
 
     override fun onResume() {
         super.onResume()
-        accelerometer?.let {
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
-        }
-        map.onResume() // Necesario para OSMDroid
+        accelerometer?.let { sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL) }
+        map.onResume()
     }
 
     override fun onPause() {
         super.onPause()
         sensorManager.unregisterListener(this)
-        map.onPause() // Necesario para OSMDroid
+        map.onPause()
     }
 
     override fun onDestroy() {
-        // Limpiamos el TTS para que no se quede hablando solo (Petición de Alejandro)
+        handlerMensajes.removeCallbacksAndMessages(null)
         tts?.stop()
         tts?.shutdown()
         super.onDestroy()
     }
+
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 }
