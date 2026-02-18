@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -20,12 +21,14 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.speech.tts.TextToSpeech
+import android.view.LayoutInflater
+import android.widget.ImageButton
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat
 import com.google.android.material.textfield.TextInputEditText
 import org.osmdroid.config.Configuration
 import org.osmdroid.util.GeoPoint
@@ -35,24 +38,28 @@ import java.util.Locale
 
 class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener {
 
-    // --- SENSORES (Acelerómetro) ---
+    // --- CONFIGURACIÓN Y PERSISTENCIA ---
+    private lateinit var prefs: SharedPreferences
+    private var umbralActual: Double = 20.0
+    private var mensajeActual: String = ""
+
+    // --- SENSORES ---
     private lateinit var sensorManager: SensorManager
     private var accelerometer: Sensor? = null
-    private lateinit var inputUmbral: TextInputEditText
     private lateinit var visualizador: TextView
     private var ultimoAvisoAccidente: Long = 0
 
-    // --- LOCALIZACIÓN (LocationManager) ---
+    // --- LOCALIZACIÓN ---
     private lateinit var locationManager: LocationManager
     private lateinit var textoGPS: TextView
 
-    // --- VARIABLES DE EQUIPO ---
+    // --- MAPA Y TTS ---
     private lateinit var map: MapView
     private var marcador: Marker? = null
     private var tts: TextToSpeech? = null
     private var ttsListo = false
 
-    // Alejandro (Voz y Velocidad)
+    // Lógica de velocidad
     private var primeraLocalizacion: Location? = null
     private var ultimaLocalizacion: Location? = null
     private var tiempoInicio: Long = 0L
@@ -63,15 +70,21 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Configuración para el mapa de Esther
         Configuration.getInstance().userAgentValue = packageName
         setContentView(R.layout.activity_main)
 
+        // Cargar preferencias
+        prefs = getSharedPreferences("config_app", Context.MODE_PRIVATE)
+        umbralActual = prefs.getString("umbral", "20.0")?.toDoubleOrNull() ?: 20.0
+        mensajeActual = prefs.getString("mensaje", getString(R.string.mensaje_por_defecto)) 
+            ?: getString(R.string.mensaje_por_defecto)
+
         // Vincular Vistas
-        inputUmbral = findViewById(R.id.inputUmbral)
         visualizador = findViewById(R.id.visualizador)
         textoGPS = findViewById(R.id.textView)
+        findViewById<ImageButton>(R.id.btnConfig).setOnClickListener {
+            mostrarDialogoConfiguracion()
+        }
 
         // 1. Inicializar SensorManager y Acelerómetro (Basado en Diapositivas)
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
@@ -84,6 +97,33 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
         inicializarVoz()
         inicializarNotificaciones()
         comprobarPermisos()
+    }
+
+    private fun mostrarDialogoConfiguracion() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_settings, null)
+        val inputUmbral = dialogView.findViewById<TextInputEditText>(R.id.inputUmbralDialog)
+        val inputMensaje = dialogView.findViewById<TextInputEditText>(R.id.inputMensajeDialog)
+
+        inputUmbral.setText(umbralActual.toString())
+        inputMensaje.setText(mensajeActual)
+
+        AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setPositiveButton(R.string.guardar) { _, _ ->
+                val nuevoUmbralStr = inputUmbral.text.toString()
+                val nuevoMensaje = inputMensaje.text.toString()
+                
+                umbralActual = nuevoUmbralStr.toDoubleOrNull() ?: 20.0
+                mensajeActual = nuevoMensaje
+                
+                prefs.edit().apply {
+                    putString("umbral", nuevoUmbralStr)
+                    putString("mensaje", nuevoMensaje)
+                    apply()
+                }
+            }
+            .setNegativeButton(R.string.cancelar, null)
+            .show()
     }
 
     private fun inicializarVoz() {
@@ -106,14 +146,12 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
             val z = event.values[2]
 
             val magnitud = Math.sqrt((x * x + y * y + z * z).toDouble())
-            val umbral = inputUmbral.text.toString().toDoubleOrNull() ?: 20.0
 
-            if (magnitud > umbral) {
+            if (magnitud > umbralActual) {
                 val ahora = System.currentTimeMillis()
                 if (ahora - ultimoAvisoAccidente > 5000) {
-                    // Mensaje personalizado solicitado
                     if (ttsListo) {
-                        tts?.speak("Carlos eres un pringado te has caido", TextToSpeech.QUEUE_FLUSH, null, null)
+                        tts?.speak(mensajeActual, TextToSpeech.QUEUE_FLUSH, null, null)
                     }
                     lanzarNotificacion(ultimaLocalizacion)
                     ultimoAvisoAccidente = ahora
@@ -149,7 +187,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
         handlerMensajes.postDelayed(object : Runnable {
             override fun run() {
                 lanzarMensajeVelocidad()
-                handlerMensajes.postDelayed(this, 60000) // Cada 60 segundos
+                handlerMensajes.postDelayed(this, 60000)
             }
         }, 60000)
     }
@@ -161,7 +199,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
             val distancia = p1.distanceTo(p2)
             val tiempoSegundos = (System.currentTimeMillis() - tiempoInicio) / 1000.0
             val velocidad = if (tiempoSegundos > 0) (distancia / tiempoSegundos).toFloat() else 0f
-
             val texto = "Tu velocidad media es de ${String.format("%.2f", velocidad)} metros por segundo"
             tts?.speak(texto, TextToSpeech.QUEUE_ADD, null, null)
         }
@@ -211,7 +248,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_dialog_alert)
             .setContentTitle("¡EMERGENCIA!")
-            .setContentText("Carlos se ha caído")
+            .setContentText(mensajeActual)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pending)
             .setAutoCancel(true)
