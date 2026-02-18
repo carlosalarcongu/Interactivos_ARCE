@@ -1,7 +1,11 @@
 package com.example.helloworld
 
 import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -10,12 +14,16 @@ import android.hardware.SensorManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.work.Configuration
 import com.google.android.material.textfield.TextInputEditText
@@ -51,7 +59,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
     private var tiempoInicio: Long = 0L
 
     // RAÚL (Notificaciones)
-    // (Aquí irían variables de canales de notificación si hicieran falta globales)
+    private val CHANNEL_ID = "canal_caidas"
 
     // --- 3. GESTIÓN DE PERMISOS (Carlos) ---
     private val permisoGPSLauncher = registerForActivityResult(
@@ -87,7 +95,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
         // --- INICIALIZAR MÓDULOS DEL EQUIPO ---
         inicializarMapaEsther()
         inicializarVozAlejandro()
-        inicializarNotificacionesRaul()
+        inicializarNotificaciones()
 
         // --- INICIALIZAR GPS (Tu responsabilidad principal) ---
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
@@ -154,8 +162,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
             if (magnitud > umbralAccidente) {
                 val ahora = System.currentTimeMillis()
                 if (ahora - ultimoAvisoAccidente > 5000) {
-                    Toast.makeText(this, "¡ACCIDENTE DETECTADO! (Llamando a Raúl...)", Toast.LENGTH_LONG).show()
-                    lanzarNotificacionRaul() // Conectamos con el módulo de Raúl
+                    Toast.makeText(this, "¡ACCIDENTE DETECTADO!", Toast.LENGTH_LONG).show()
+                    lanzarNotificacion(ultimaLocalizacion)
                     ultimoAvisoAccidente = ahora
                 }
             } else {
@@ -203,12 +211,45 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
         // TODO: Alejandro calculará aquí la velocidad
     }
 
-    private fun inicializarNotificacionesRaul() {
-        // TODO: Raúl creará el canal de notificaciones
+    private fun inicializarNotificaciones() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val canal = NotificationChannel(
+                CHANNEL_ID,
+                "Detección de caídas",
+                NotificationManager.IMPORTANCE_HIGH
+            )
+            val manager = getSystemService(
+                NotificationManager::class.java
+            )
+            manager?.createNotificationChannel(canal)
+        }
     }
 
-    private fun lanzarNotificacionRaul() {
-        // TODO: Raúl disparará la notificación de caída aquí
+    private fun lanzarNotificacion(location: Location?) {
+        val uri = Uri.parse("https://www.google.com/maps?q=${location?.latitude},${location?.longitude}")
+        val intent = Intent(Intent.ACTION_VIEW, uri)
+        val pendingIntent =
+            PendingIntent.getActivity(
+                this,
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or
+                        PendingIntent.FLAG_IMMUTABLE
+            )
+        val builder =
+            NotificationCompat.Builder(this, CHANNEL_ID)
+                .setSmallIcon(
+                    android.R.drawable.ic_dialog_alert
+                )
+                .setContentTitle("Caída detectada")
+                .setContentText(
+                    "Pulsa para ver la ubicación"
+                )
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+        NotificationManagerCompat
+            .from(this)
+            .notify(1001, builder.build())
     }
 
     // ==========================================
