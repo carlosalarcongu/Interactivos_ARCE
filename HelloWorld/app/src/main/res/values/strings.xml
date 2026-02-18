@@ -1,4 +1,12 @@
 <resources>
     <string name="app_name">HelloWorld</string>
     <string name="accelerometer_data">X: %1$.2f\nY: %2$.2f\nZ: %3$.2f</string>
+    <string name="monitor_de_sensores">Monitor de Sensores</string>
+    <string name="aceler_metro">🚀 ACELERÓMETRO</string>
+    <string name="x_0_0_y_0_0_z_0_0">X: 0.0 | Y: 0.0 | Z: 0.0</string>
+    <string name="coordenadas_carlos">📍 COORDENADAS (Carlos)</string>
+    <string name="esperando_se_al">Esperando señal...</string>
+    <string name="umbral_accidente">⚙️ UMBRAL ACCIDENTE</string>
+    <string name="sensibilidad_g_force">Sensibilidad (G-Force)</string>
+    <string name="_20_0">20.0</string>
 </resources>

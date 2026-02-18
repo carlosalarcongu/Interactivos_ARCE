@@ -113,7 +113,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000L, 0f, this)
 
             Toast.makeText(this, "Buscando satélites...", Toast.LENGTH_SHORT).show()
-        } catch (e: SecurityException) {
+        } catch (_: SecurityException) {
             Toast.makeText(this, "Error de seguridad GPS", Toast.LENGTH_SHORT).show()
         }
     }
@@ -186,7 +186,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
             val punto = GeoPoint(location.latitude, location.longitude)
             map.controller.setCenter(punto)
             // Aquí Esther añadirá el código del Marker
-        } catch (e: Exception) {}
+        } catch (_: Exception) {}
     }
 
     private fun inicializarVozAlejandro() {

@@ -14,7 +14,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:text="Monitor de Sensores"
+        android:text="@string/monitor_de_sensores"
         android:textColor="#1A202C"
         android:textSize="28sp"
         android:textStyle="bold"
@@ -43,7 +43,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🚀 ACELERÓMETRO"
+                android:text="@string/aceler_metro"
                 android:textColor="#718096"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -54,7 +54,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:fontFamily="monospace"
-                android:text="X: 0.0 | Y: 0.0 | Z: 0.0"
+                android:text="@string/x_0_0_y_0_0_z_0_0"
                 android:textColor="#2D3748"
                 android:textSize="16sp" />
         </LinearLayout>
@@ -81,7 +81,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📍 COORDENADAS (Carlos)"
+                android:text="@string/coordenadas_carlos"
                 android:textColor="#3182CE"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -91,7 +91,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Esperando señal..."
+                android:text="@string/esperando_se_al"
                 android:textColor="#2C5282"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -119,7 +119,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="⚙️ UMBRAL ACCIDENTE"
+                android:text="@string/umbral_accidente"
                 android:textColor="#718096"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -128,7 +128,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:hint="Sensibilidad (G-Force)"
+                android:hint="@string/sensibilidad_g_force"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -136,7 +136,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="numberDecimal"
-                    android:text="20.0"
+                    android:text="@string/_20_0"
                     android:textSize="14sp"/>
             </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>
