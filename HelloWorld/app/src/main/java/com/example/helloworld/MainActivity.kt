@@ -22,6 +22,7 @@ import org.osmdroid.config.Configuration
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import java.util.Locale
+import org.osmdroid.views.overlay.Marker
 
 class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener {
 
@@ -40,8 +41,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
 
     // --- 2. VARIABLES PARA EL EQUIPO (Placeholders) ---
 
-    // ESTHER (Mapa)
+    // Mapa
     private lateinit var map: MapView
+    private var marcador:Marker? = null
 
     // ALEJANDRO (Voz y Velocidad)
     private var tts: TextToSpeech? = null
@@ -68,8 +70,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // IMPORTANTE PARA ESTHER: Configuración OSMDroid antes de cargar el XML
-        // Evita que el mapa se bloquee al intentar descargar tiles
+        // Configuración de OSMDroid
         Configuration.getInstance().userAgentValue = packageName
 
         setContentView(R.layout.activity_main)
@@ -84,7 +85,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
         // --- INICIALIZAR MÓDULOS DEL EQUIPO ---
-        inicializarMapaEsther()
+        inicializarMapa()
         inicializarVozAlejandro()
         inicializarNotificacionesRaul()
 
@@ -130,8 +131,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
         }
         ultimaLocalizacion = location
 
-        // 3. Llamar a ESTHER: "Mueve el mapa"
-        actualizarMapaEsther(location)
+        actualizarMapa(location)
 
         // 4. Llamar a ALEJANDRO: "Calcula y habla"
         gestionarVelocidadAlejandro(location)
@@ -169,8 +169,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
     // PARTE 3: ZONA DE INTEGRACIÓN (PLACEHOLDERS)
     // ==========================================
 
-    private fun inicializarMapaEsther() {
-        // TODO: Esther configurará aquí el MapView
+    private fun inicializarMapa() {
         try {
             map = findViewById(R.id.map)
             map.setMultiTouchControls(true)
@@ -180,12 +179,17 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
         }
     }
 
-    private fun actualizarMapaEsther(location: Location) {
-        // TODO: Esther implementará el movimiento del marcador
+    private fun actualizarMapa(location: Location) {
         try {
             val punto = GeoPoint(location.latitude, location.longitude)
             map.controller.setCenter(punto)
-            // Aquí Esther añadirá el código del Marker
+            marcador?.let{map.overlays.remove(it)}
+            marcador = Marker(map).apply {
+                position = punto
+                title = "Mi ubicación"
+            }
+            map.overlays.add(marcador)
+            map.invalidate()
         } catch (_: Exception) {}
     }
 
