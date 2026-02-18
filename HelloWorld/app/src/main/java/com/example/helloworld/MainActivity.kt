@@ -16,11 +16,15 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.google.android.material.textfield.TextInputEditText
 
 class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener {
     private lateinit var sensorManager: SensorManager
     private var accelerometer: Sensor? = null
     private lateinit var locationManager: LocationManager
+    private lateinit var inputUmbral: TextInputEditText
+    private lateinit var visualizador: TextView
+    private var ultimoAvisoAccidente: Long = 0
 
     private val permisoGPSLauncher =
         registerForActivityResult(
@@ -41,6 +45,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        inputUmbral = findViewById(R.id.inputUmbral)
+        visualizador = findViewById(R.id.visualizador)
+        
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
@@ -81,31 +88,30 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
     override fun onPause() {
         super.onPause()
         sensorManager.unregisterListener(this)
-        // Opcionalmente podrías detener el GPS aquí para ahorrar batería
-        // locationManager.removeUpdates(this)
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
     override fun onSensorChanged(event: SensorEvent?) {
         if (event != null) {
-            val visualizador = findViewById<TextView>(R.id.visualizador)
-
             val x = event.values[0]
             val y = event.values[1]
             val z = event.values[2]
 
             val magnitud = Math.sqrt((x * x + y * y + z * z).toDouble())
-
-            val umbralAccidente = 20.0
+            val umbralAccidente = inputUmbral.text.toString().toDoubleOrNull() ?: 20.0
 
             if (magnitud > umbralAccidente) {
-                Toast.makeText(this, "¡Accidente detectado!", Toast.LENGTH_LONG).show()
-
+                val ahora = System.currentTimeMillis()
+                // Solo avisar si han pasado más de 5 segundos desde el último aviso
+                if (ahora - ultimoAvisoAccidente > 5000) {
+                    Toast.makeText(this, "¡Accidente detectado!", Toast.LENGTH_LONG).show()
+                    ultimoAvisoAccidente = ahora
+                }
             } else {
                 visualizador.text = getString(R.string.accelerometer_data, x, y, z)
-                visualizador.setTextColor(android.graphics.Color.BLACK) // Color normal
-                visualizador.textSize = 14f // Tamaño normal
+                visualizador.setTextColor(android.graphics.Color.BLACK)
+                visualizador.textSize = 14f
             }
         }
     }
