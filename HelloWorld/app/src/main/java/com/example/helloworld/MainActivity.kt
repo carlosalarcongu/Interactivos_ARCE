@@ -426,7 +426,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
         requestPermissionLauncher.launch(p.toTypedArray())
     }
 
-
+    // FIX
     private fun esUbicacionValida(nueva: Location, vieja: Location?): Boolean {
         if (vieja == null) return true
 
