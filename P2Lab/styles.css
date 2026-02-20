@@ -1,21 +1,64 @@
 /* =======================================================
-   ESTILOS POR DEFECTO: MODO CLARO (Dispositivos personales)
+   ANIMACIONES DINÁMICAS (NUEVO)
+   ======================================================= */
+@keyframes latido {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.animacion-pulso {
+    animation: latido 2s infinite;
+    display: inline-block;
+}
+
+/* =======================================================
+   ESTILOS MÓVIL / DEFECTO (Con imagen de fondo)
    ======================================================= */
 body {
-    background-color: #f8f9fa;
+    /* AQUÍ PONES LA RUTA DE TU IMAGEN PARA EL MÓVIL */
+    background-image: url('image.png'); 
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed; /* Hace que el fondo no se mueva al hacer scroll */
+    background-color: #f8f9fa; /* Color de respaldo si falla la imagen */
     color: #212529;
-    transition: background-color 0.3s, color 0.3s;
+    font-family: system-ui, -apple-system, sans-serif;
 }
 
+/* Efecto cabecera pegajosa */
 .header-tabla {
-    background-color: #e9ecef;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: rgba(233, 236, 239, 0.95);
+    backdrop-filter: blur(5px); /* Desenfoca lo que hay detrás */
     font-weight: bold;
     border-bottom: 2px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
 }
 
+/* Diseño de tarjetas "Glassmorphism" para que se vea el fondo */
 .fila-evento {
-    background-color: #ffffff;
-    border-bottom: 1px solid #dee2e6;
+    background-color: rgba(255, 255, 255, 0.90); /* Blanco al 90% de opacidad */
+    border-radius: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.5);
+}
+
+/* Efecto al tocar/pasar el ratón */
+.fila-evento:hover {
+    transform: translateY(-5px); /* La tarjeta "flota" hacia arriba */
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+}
+
+.etiqueta-estado {
+    font-size: 0.75rem;
+    padding: 0.4em 0.6em;
 }
 
 /* =======================================================
@@ -24,6 +67,7 @@ body {
    ======================================================= */
 @media (min-width: 1200px) {
     body {
+        background-image: none; /* Quitamos la imagen para el panel público para evitar reflejos */
         background-color: #121212;
         color: #e0e0e0;
     }
@@ -32,18 +76,29 @@ body {
         background-color: #000000;
         color: #ffffff;
         border-bottom: 2px solid #424242;
+        border-radius: 0;
+        margin-bottom: 0;
+        box-shadow: none;
     }
     
     .fila-evento {
         background-color: #1e1e1e;
-        border-bottom: 1px solid #424242;
+        border-radius: 0; /* Volvemos a formato tabla plana estricta */
+        margin-bottom: 0;
+        border: none;
+        border-bottom: 1px solid #333333;
+        transition: background-color 0.2s, transform 0.2s;
     }
     
     .fila-evento:hover {
-        background-color: #2c2c2c; /* Efecto táctil en panel */
+        background-color: #2a2a2a; 
+        transform: scale(1.01); /* Pequeño zoom en lugar de flotar */
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        z-index: 10;
+        position: relative;
     }
     
     .text-muted-custom {
-        color: #b0b0b0 !important;
+        color: #9e9e9e !important;
     }
 }
