@@ -1,5 +1,13 @@
 /* =======================================================
-   ANIMACIONES DINÁMICAS (NUEVO)
+   TIPOGRAFÍA DINÁMICA (Fluida según el dispositivo)
+   ======================================================= */
+html { font-size: 14px; } /* Móvil pequeño */
+@media (min-width: 576px) { html { font-size: 15px; } } /* Smartphone normal */
+@media (min-width: 768px) { html { font-size: 16px; } } /* Tablet */
+@media (min-width: 1200px) { html { font-size: 18px; } } /* Pantalla gigante */
+
+/* =======================================================
+   ANIMACIONES DINÁMICAS
    ======================================================= */
 @keyframes latido {
     0% { transform: scale(1); }
@@ -20,19 +28,19 @@ body {
     background-image: url('image.png'); 
     background-size: cover;
     background-position: center;
-    background-attachment: fixed; /* Hace que el fondo no se mueva al hacer scroll */
-    background-color: #121212; /* Color oscuro de respaldo */
-    color: #ffffff; /* TEXTO BLANCO PARA LEER SOBRE FONDO OSCURO */
+    background-attachment: fixed;
+    background-color: #121212;
+    color: #ffffff;
     font-family: system-ui, -apple-system, sans-serif;
 }
 
-/* Efecto cabecera pegajosa (Ajustada para modo oscuro/cristal) */
+/* Efecto cabecera pegajosa */
 .header-tabla {
     position: sticky;
     top: 0;
     z-index: 100;
-    background-color: rgba(30, 30, 30, 0.6); /* Fondo más oscuro para la cabecera */
-    backdrop-filter: blur(8px); /* Desenfoca lo que hay detrás */
+    background-color: rgba(30, 30, 30, 0.6);
+    backdrop-filter: blur(8px);
     font-weight: bold;
     border-bottom: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
@@ -40,9 +48,9 @@ body {
     box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
 
-/* Diseño de tarjetas "Glassmorphism" ajustado a fondo oscuro */
+/* Diseño de tarjetas "Glassmorphism" */
 .fila-evento {
-    background-color: rgba(0, 0, 0, 0.4); /* Negro translúcido */
+    background-color: rgba(0, 0, 0, 0.4);
     border-radius: 12px;
     margin-bottom: 12px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
@@ -50,9 +58,8 @@ body {
     border: 1px solid rgba(255,255,255,0.1);
 }
 
-/* Efecto al tocar/pasar el ratón */
 .fila-evento:hover {
-    transform: translateY(-5px); /* La tarjeta "flota" hacia arriba */
+    transform: translateY(-5px);
     box-shadow: 0 10px 20px rgba(0,0,0,0.4);
     background-color: rgba(0, 0, 0, 0.6);
 }
@@ -62,7 +69,6 @@ body {
     padding: 0.4em 0.6em;
 }
 
-/* Estilos para el botón "Más Info" */
 .btn-mas-info {
     font-size: 0.8rem;
     padding: 0.2rem 0.5rem;
@@ -70,11 +76,9 @@ body {
     border-radius: 20px;
 }
 
-/* =======================================================
-   ESTILOS PARA LA TARJETA DEL TÍTULO PRINCIPAL Y QR
-   ======================================================= */
+/* Tarjeta del título */
 .tarjeta-titulo {
-    background-color: rgba(0, 0, 0, 0.5); /* Ajustado a oscuro */
+    background-color: rgba(0, 0, 0, 0.5);
     border: 1px solid rgba(255,255,255,0.2);
     backdrop-filter: blur(6px); 
     display: flex;
@@ -84,77 +88,72 @@ body {
 }
 
 .tarjeta-titulo .text-muted {
-    color: #cccccc !important; /* Gris claro para el subtítulo en móvil */
+    color: #cccccc !important;
 }
 
-/* Contenedor del código QR */
+/* Contenedor del QR (Fondo blanco necesario para escáneres) */
 .qr-container {
-    background-color: white; /* Fondo blanco OBLIGATORIO para que el lector QR funcione */
+    background-color: white;
     padding: 10px;
     border-radius: 8px;
     margin-top: 15px;
     display: inline-block;
+    text-align: center;
+}
+
+/* =======================================================
+   ESTILOS MÓVIL EXTRA PEQUEÑO (xs) - < 576px
+   ======================================================= */
+@media (max-width: 575.98px) {
+    body {
+        background-image: none !important; /* Quitamos fondo */
+        background-color: #0a0a0a !important; /* Fondo casi negro */
+    }
+    .tarjeta-titulo, .header-tabla, .fila-evento {
+        background-color: #1e1e1e !important; /* Tarjetas sólidas, no transparentes */
+        backdrop-filter: none !important;
+        border: 1px solid #333 !important;
+    }
+    .tarjeta-titulo .text-muted { font-size: 0.9rem !important; }
 }
 
 /* =======================================================
    ESTILOS PANTALLA GIGANTE: MODO OSCURO (Panel interactivo)
-   Aplicado a partir de 1200px (Extra Large - xl)
    ======================================================= */
 @media (min-width: 1200px) {
     body {
-        background-image: none; /* Quitamos la imagen para el panel público para evitar reflejos */
+        background-image: none !important;
         background-color: #121212;
-        color: #e0e0e0;
     }
     
     .header-tabla {
         background-color: #000000;
-        color: #ffffff;
         border-bottom: 2px solid #424242;
         border-radius: 0;
         margin-bottom: 0;
-        box-shadow: none;
-        backdrop-filter: none; /* Quitamos el blur en la pantalla grande */
+        backdrop-filter: none;
     }
     
     .fila-evento {
         background-color: #1e1e1e;
-        border-radius: 0; /* Volvemos a formato tabla plana estricta */
+        border-radius: 0;
         margin-bottom: 0;
         border: none;
         border-bottom: 1px solid #333333;
-        transition: background-color 0.2s, transform 0.2s;
     }
     
     .fila-evento:hover {
         background-color: #2a2a2a; 
-        transform: scale(1.01); /* Pequeño zoom en lugar de flotar */
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        z-index: 10;
-        position: relative;
+        transform: scale(1.01);
     }
     
-    .text-muted-custom {
-        color: #9e9e9e !important;
-    }
+    .text-muted-custom { color: #9e9e9e !important; }
 
-    /* Reseteamos la tarjeta del título en la pantalla gigante */
     .tarjeta-titulo {
-        background-color: transparent;
-        border: none;
-        box-shadow: none !important;
-        backdrop-filter: none;
-        padding-top: 0 !important;
-        padding-bottom: 1rem !important;
-        flex-direction: row; /* Título a la izquierda, QR a la derecha (opcional) */
+        background-color: transparent !important;
+        border: none !important;
+        backdrop-filter: none !important;
+        flex-direction: row; /* Título y QR lado a lado */
         justify-content: space-between;
-    }
-
-    .tarjeta-titulo h1 {
-        color: #ffffff;
-        text-shadow: none;
-    }
-    .tarjeta-titulo .text-muted {
-        color: #b0b0b0 !important; 
     }
 }
