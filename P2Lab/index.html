@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Eventos Deportivos Urbanos</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <div class="container-fluid py-4 px-md-5">
+        
+        <div class="row mb-4 justify-content-center">
+            <div class="col-12 col-xl-10 text-center text-xl-start">
+                <div class="tarjeta-titulo p-4 rounded-4 shadow-sm">
+                    <div>
+                        <h1 class="fw-bold text-uppercase m-0" style="letter-spacing: 2px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+                            <span style="color: #ff6b6b;">Próximos Eventos</span> 
+                        </h1>
+                        <p class="text-muted fw-medium mt-2 mb-0 fs-5">
+                            Información en tiempo real para corredores de la ciudad
+                        </p>
+                    </div>
+                    
+                    <div class="qr-container">
+                        <img src="https://chart.googleapis.com/chart?chs=100x100&cht=qr&chl=https%3A%2F%2Fwww.bilbao.eus%2Fdeportes&choe=UTF-8" alt="QR Eventos">
+                        <div class="small text-dark fw-bold mt-1" style="font-size: 0.65rem;">LLEVAR EN EL MÓVIL</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row header-tabla py-3 text-center align-items-center">
+            <div class="col-4 col-sm-3 col-lg-2 col-xl-1">Fecha</div>
+            
+            <div class="col-8 col-sm-6 col-lg-4 col-xl-2">Evento / Estado</div>
+            
+            <div class="d-none d-sm-block col-sm-3 col-lg-2 col-xl-1">Distancia</div>
+            
+            <div class="d-none d-xl-block col-xl-2">Accesos y Transporte</div>
+            <div class="d-none d-xl-block col-xl-2">Servicios Técnicos</div>
+            
+            <div class="d-none d-lg-block col-lg-4 col-xl-2">Trazado y Crono</div>
+            
+            <div class="d-none d-xl-block col-xl-2">Protocolos</div>
+        </div>
+
+        <div class="row fila-evento py-3 align-items-center text-center text-xl-start">
+            <div class="col-4 col-sm-3 col-lg-2 col-xl-1 fw-bold fs-5">12/05</div>
+            
+            <div class="col-8 col-sm-6 col-lg-4 col-xl-2">
+                <div class="fw-bold text-info fs-5">Maratón de Bilbao</div>
+                <span class="badge bg-danger rounded-pill etiqueta-estado animacion-pulso mt-1 mb-2">¡Últimas plazas!</span><br>
+                <a href="#" class="btn btn-outline-light btn-sm btn-mas-info">Más Información</a>
+            </div>
+            
+            <div class="d-none d-sm-block col-sm-3 col-lg-2 col-xl-1 fw-bold fs-4">42K</div>
+            
+            <div class="d-none d-xl-block col-xl-2 small text-muted-custom">
+                🚌 Bus L1, L2. Metro L1. Parking en BEC.
+            </div>
+            <div class="d-none d-xl-block col-xl-2 small text-muted-custom">
+                💧 Líquido cada 5km. Hospital en Meta.
+            </div>
+            <div class="d-none d-lg-block col-lg-4 col-xl-2 small text-muted-custom">
+                ⏱️ Desnivel 120m. Adoquín en Casco Viejo. Chip: km 10, 21 y 30.
+            </div>
+            <div class="d-none d-xl-block col-xl-2 small text-muted-custom">
+                ⚠️ Cierre cajones 08:30. Tiempo corte 5h.
+            </div>
+        </div>
+
+        <div class="row fila-evento py-3 align-items-center text-center text-xl-start">
+            <div class="col-4 col-sm-3 col-lg-2 col-xl-1 fw-bold fs-5">28/05</div>
+            
+            <div class="col-8 col-sm-6 col-lg-4 col-xl-2">
+                <div class="fw-bold text-success fs-5">Nocturna Urbana</div>
+                <span class="badge bg-success rounded-pill etiqueta-estado mt-1 mb-2">Inscripción Abierta</span><br>
+                <a href="#" class="btn btn-outline-light btn-sm btn-mas-info">Más Información</a>
+            </div>
+            
+            <div class="d-none d-sm-block col-sm-3 col-lg-2 col-xl-1 fw-bold fs-4">10K</div>
+            
+            <div class="d-none d-xl-block col-xl-2 small text-muted-custom">
+                🚶‍♂️ Acceso peatonal Avenida Central. Corte 18:00.
+            </div>
+            <div class="d-none d-xl-block col-xl-2 small text-muted-custom">
+                💧 Avituallamiento km 5. Aseos en salida.
+            </div>
+            <div class="d-none d-lg-block col-lg-4 col-xl-2 small text-muted-custom">
+                ⏱️ 100% llano. Curva cerrada km 8.
+            </div>
+            <div class="d-none d-xl-block col-xl-2 small text-muted-custom">
+                ⚠️ Frontal obligatorio. Salida 21:00.
+            </div>
+        </div>
+
+        <div class="row fila-evento py-3 align-items-center text-center text-xl-start">
+            <div class="col-4 col-sm-3 col-lg-2 col-xl-1 fw-bold fs-5">15/06</div>
+            
+            <div class="col-8 col-sm-6 col-lg-4 col-xl-2">
+                <div class="fw-bold fs-5" style="color: #f39c12 !important;">Trail Pagasarri</div>
+                <span class="badge bg-secondary rounded-pill etiqueta-estado mt-1 mb-2">Próximamente</span><br>
+                <a href="#" class="btn btn-outline-light btn-sm btn-mas-info">Más Información</a>
+            </div>
+            
+            <div class="d-none d-sm-block col-sm-3 col-lg-2 col-xl-1 fw-bold fs-4">21K</div>
+            
+            <div class="d-none d-xl-block col-xl-2 small text-muted-custom">
+                🚗 Acceso en coche prohibido. Lanzaderas.
+            </div>
+            <div class="d-none d-xl-block col-xl-2 small text-muted-custom">
+                🎒 Autosuficiencia (sin vasos). 3 recargas.
+            </div>
+            <div class="d-none d-lg-block col-lg-4 col-xl-2 small text-muted-custom">
+                ⛰️ Desnivel +1200m. Bajada técnica km 15.
+            </div>
+            <div class="d-none d-xl-block col-xl-2 small text-muted-custom">
+                ⚠️ Revisión material (manta, silbato) 07:00.
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

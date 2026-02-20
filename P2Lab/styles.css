@@ -1,0 +1,159 @@
+/* =======================================================
+   TIPOGRAFÍA DINÁMICA (Fluida según el dispositivo)
+   ======================================================= */
+html { font-size: 14px; } /* Móvil pequeño */
+@media (min-width: 576px) { html { font-size: 15px; } } /* Smartphone normal */
+@media (min-width: 768px) { html { font-size: 16px; } } /* Tablet */
+@media (min-width: 1200px) { html { font-size: 18px; } } /* Pantalla gigante */
+
+/* =======================================================
+   ANIMACIONES DINÁMICAS
+   ======================================================= */
+@keyframes latido {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.animacion-pulso {
+    animation: latido 2s infinite;
+    display: inline-block;
+}
+
+/* =======================================================
+   ESTILOS MÓVIL / DEFECTO (Con imagen de fondo oscura)
+   ======================================================= */
+body {
+    /* AQUÍ PONES LA RUTA DE TU IMAGEN PARA EL MÓVIL */
+    background-image: url('image.png'); 
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-color: #121212;
+    color: #ffffff;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Efecto cabecera pegajosa */
+.header-tabla {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: rgba(30, 30, 30, 0.6);
+    backdrop-filter: blur(8px);
+    font-weight: bold;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+/* Diseño de tarjetas "Glassmorphism" */
+.fila-evento {
+    background-color: rgba(0, 0, 0, 0.4);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.fila-evento:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.etiqueta-estado {
+    font-size: 0.75rem;
+    padding: 0.4em 0.6em;
+}
+
+.btn-mas-info {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.5rem;
+    margin-top: 0.5rem;
+    border-radius: 20px;
+}
+
+/* Tarjeta del título */
+.tarjeta-titulo {
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255,255,255,0.2);
+    backdrop-filter: blur(6px); 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.tarjeta-titulo .text-muted {
+    color: #cccccc !important;
+}
+
+/* Contenedor del QR (Fondo blanco necesario para escáneres) */
+.qr-container {
+    background-color: white;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 15px;
+    display: inline-block;
+    text-align: center;
+}
+
+/* =======================================================
+   ESTILOS MÓVIL EXTRA PEQUEÑO (xs) - < 576px
+   ======================================================= */
+@media (max-width: 575.98px) {
+    body {
+        background-image: none !important; /* Quitamos fondo */
+        background-color: #0a0a0a !important; /* Fondo casi negro */
+    }
+    .tarjeta-titulo, .header-tabla, .fila-evento {
+        background-color: #1e1e1e !important; /* Tarjetas sólidas, no transparentes */
+        backdrop-filter: none !important;
+        border: 1px solid #333 !important;
+    }
+    .tarjeta-titulo .text-muted { font-size: 0.9rem !important; }
+}
+
+/* =======================================================
+   ESTILOS PANTALLA GIGANTE: MODO OSCURO (Panel interactivo)
+   ======================================================= */
+@media (min-width: 1200px) {
+    body {
+        background-image: none !important;
+        background-color: #121212;
+    }
+    
+    .header-tabla {
+        background-color: #000000;
+        border-bottom: 2px solid #424242;
+        border-radius: 0;
+        margin-bottom: 0;
+        backdrop-filter: none;
+    }
+    
+    .fila-evento {
+        background-color: #1e1e1e;
+        border-radius: 0;
+        margin-bottom: 0;
+        border: none;
+        border-bottom: 1px solid #333333;
+    }
+    
+    .fila-evento:hover {
+        background-color: #2a2a2a; 
+        transform: scale(1.01);
+    }
+    
+    .text-muted-custom { color: #9e9e9e !important; }
+
+    .tarjeta-titulo {
+        background-color: transparent !important;
+        border: none !important;
+        backdrop-filter: none !important;
+        flex-direction: row; /* Título y QR lado a lado */
+        justify-content: space-between;
+    }
+}
