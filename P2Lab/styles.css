@@ -1,11 +1,15 @@
-/* =======================================================
-   TIPOGRAFÍA DINÁMICA (Fluida según el dispositivo)
-   ======================================================= */
-html { font-size: 14px; } /* Móvil pequeño */
+html { font-size: 14px; } /* Móvil extra pequeño */
 @media (min-width: 576px) { html { font-size: 15px; } } /* Smartphone normal */
 @media (min-width: 768px) { html { font-size: 16px; } } /* Tablet */
-@media (min-width: 1200px) { html { font-size: 18px; } } /* Pantalla gigante */
+@media (min-width: 992px) { html { font-size: 18px; } } /* Portátil */
+@media (min-width: 1200px) { html { font-size: 20px; } } /* Monitor grande (Panel Base) */
+@media (min-width: 1400px) { html { font-size: 24px; } } /* Monitor XXL */
+@media (min-width: 1920px) { html { font-size: 1.3vw; } } /* Pantallas gigantes / 4K: La letra crece sin límite */
 
+/* =======================================================
+   ANIMACIONES DINÁMICAS
+   ======================================================= */
+/* ... (El resto de tu código CSS sigue exactamente igual a partir de aquí) ... */
 /* =======================================================
    ANIMACIONES DINÁMICAS
    ======================================================= */
