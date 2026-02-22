@@ -7,6 +7,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Color
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -24,9 +25,11 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import android.speech.tts.TextToSpeech
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -62,9 +65,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
     private lateinit var txtCalorias: TextView
     private lateinit var txtAltitud: TextView
 
-    private lateinit var visualizador: TextView
     private lateinit var textoGPS: TextView
-    private lateinit var inputUmbral: EditText
 
     private lateinit var cardDatos: MaterialCardView
     private lateinit var cardMotivacion: MaterialCardView
@@ -74,8 +75,15 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
     private lateinit var btnCambiarModo: Button
     private lateinit var btnObjetivo: Button
     private lateinit var btnResetRuta: Button
-    private lateinit var switchVoz: SwitchCompat
-    private lateinit var switchVibracion: SwitchCompat
+    private lateinit var btnPerfil: ImageButton
+
+    // Parámetros Configurables
+    private lateinit var prefs: SharedPreferences
+    private var pesoUsuario: Float = 70f
+    private var zancadaUsuario: Float = 0.75f
+    private var umbralCaida: Float = 20f
+    private var vozActivada: Boolean = true
+    private var vibracionActivada: Boolean = true
 
     // Sistema
     private lateinit var sensorManager: SensorManager
@@ -128,6 +136,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
             Configuration.getInstance().userAgentValue = packageName
             setContentView(R.layout.activity_main)
 
+            prefs = getSharedPreferences("config_arce", Context.MODE_PRIVATE)
+            cargarAjustes()
+
             inicializarVistas()
             inicializarSensores()
             inicializarMapa()
@@ -139,8 +150,26 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
             comprobarPermisos()
         } catch (e: Exception) {
             e.printStackTrace()
-            // Esto evita que la app muera silenciosamente si falla el XML
             Toast.makeText(this, "Error inicio: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun cargarAjustes() {
+        pesoUsuario = prefs.getFloat("peso", 70f)
+        zancadaUsuario = prefs.getFloat("zancada", 0.75f)
+        umbralCaida = prefs.getFloat("umbral", 20f)
+        vozActivada = prefs.getBoolean("voz", true)
+        vibracionActivada = prefs.getBoolean("vibracion", true)
+    }
+
+    private fun guardarAjustes() {
+        prefs.edit().apply {
+            putFloat("peso", pesoUsuario)
+            putFloat("zancada", zancadaUsuario)
+            putFloat("umbral", umbralCaida)
+            putBoolean("voz", vozActivada)
+            putBoolean("vibracion", vibracionActivada)
+            apply()
         }
     }
 
@@ -165,16 +194,12 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
         cardMotivacion = findViewById(R.id.cardMotivacion)
         cardMap = findViewById(R.id.cardMap)
 
-        visualizador = findViewById(R.id.visualizador)
         textoGPS = findViewById(R.id.textView)
-        inputUmbral = findViewById(R.id.inputUmbral)
 
         btnCambiarModo = findViewById(R.id.btnCambiarModo)
         btnObjetivo = findViewById(R.id.btnObjetivo)
         btnResetRuta = findViewById(R.id.btnResetRuta)
-
-        switchVoz = findViewById(R.id.switchVoz)
-        switchVibracion = findViewById(R.id.switchVibracion)
+        btnPerfil = findViewById(R.id.btnPerfil)
 
         btnCambiarModo.setOnClickListener {
             modoActualIndex = (modoActualIndex + 1) % 3
@@ -183,7 +208,42 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
 
         btnResetRuta.setOnClickListener { resetearDatos() }
         btnObjetivo.setOnClickListener { mostrarDialogoObjetivo() }
-        switchVoz.setOnCheckedChangeListener { _, isChecked -> if(isChecked) reiniciarVoz() else detenerVoz() }
+        btnPerfil.setOnClickListener { mostrarSubmenuConfig() }
+    }
+
+    private fun mostrarSubmenuConfig() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_config, null)
+        val editPeso = dialogView.findViewById<EditText>(R.id.editPeso)
+        val editZancada = dialogView.findViewById<EditText>(R.id.editZancada)
+        val editUmbral = dialogView.findViewById<EditText>(R.id.editUmbral)
+        val dialogSwitchVoz = dialogView.findViewById<SwitchCompat>(R.id.dialogSwitchVoz)
+        val dialogSwitchVibracion = dialogView.findViewById<SwitchCompat>(R.id.dialogSwitchVibracion)
+
+        editPeso.setText(pesoUsuario.toString())
+        editZancada.setText(zancadaUsuario.toString())
+        editUmbral.setText(umbralCaida.toString())
+        dialogSwitchVoz.isChecked = vozActivada
+        dialogSwitchVibracion.isChecked = vibracionActivada
+
+        AlertDialog.Builder(this)
+            .setTitle("Perfil y Seguridad")
+            .setView(dialogView)
+            .setPositiveButton("Guardar") { _, _ ->
+                pesoUsuario = editPeso.text.toString().toFloatOrNull() ?: pesoUsuario
+                zancadaUsuario = editZancada.text.toString().toFloatOrNull() ?: zancadaUsuario
+                umbralCaida = editUmbral.text.toString().toFloatOrNull() ?: umbralCaida
+                vozActivada = dialogSwitchVoz.isChecked
+                vibracionActivada = dialogSwitchVibracion.isChecked
+                
+                guardarAjustes()
+                
+                // Actualizar servicios según los nuevos ajustes
+                if (vozActivada) reiniciarVoz() else detenerVoz()
+                
+                actualizarTextosSegunModo()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     private fun aplicarModo(index: Int) {
@@ -199,7 +259,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
                 pesoSuperior = 0.35f
                 pesoExtra = 0.15f
                 pesoMap = 0.5f
-                cardMotivacion.visibility = View.GONE
+                cardMotivacion.visibility = View.VISIBLE
+                txtFrase.text = frasesMotivadoras.random()
             }
             1 -> { // RECUPERACIÓN
                 btnCambiarModo.text = "RECUPERACIÓN 💙"
@@ -215,15 +276,13 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
                 pesoSuperior = 0.5f
                 pesoExtra = 0.2f
                 pesoMap = 0.2f
-                cardMotivacion.visibility = View.VISIBLE
-                txtFrase.text = frasesMotivadoras.random()
+                cardMotivacion.visibility = View.GONE
             }
         }
 
         try {
             mainLayout.background = ContextCompat.getDrawable(this, drawableFondo)
         } catch (e: Exception) {
-            // Fallback si no existen los degradados
             mainLayout.setBackgroundColor(Color.DKGRAY)
         }
 
@@ -245,8 +304,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
 
     private fun actualizarTextosSegunModo() {
         val minutos = ((System.currentTimeMillis() - tiempoInicio) / 60000).toInt()
-        val pasosEstimados = (distanciaTotal / 0.75).toInt()
-        val kcalEstimadas = (distanciaTotal * 0.05).toInt()
+        val pasosEstimados = (distanciaTotal / zancadaUsuario).toInt()
+        val kcalEstimadas = (distanciaTotal * (pesoUsuario / 1500f)).toInt() 
 
         txtPasos.text = "$pasosEstimados"
         txtCalorias.text = "$kcalEstimadas"
@@ -310,17 +369,13 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
     }
 
     override fun onLocationChanged(location: Location) {
-        if (!esUbicacionValida(location, ultimaLocalizacion)) {
-            // Ignoramos esta ubicación porque es un salto erróneo
-            return
-        }
+        if (!esUbicacionValida(location, ultimaLocalizacion)) return
         textoGPS.text = "GPS OK"
         altitudActual = location.altitude
 
         if (primeraLocalizacion == null) {
             primeraLocalizacion = location
             tiempoInicio = System.currentTimeMillis()
-            // Chequeo de seguridad por si acaso
             if (::map.isInitialized) map.controller.setCenter(GeoPoint(location))
             reiniciarVoz()
         }
@@ -340,9 +395,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
     }
 
     private fun actualizarMapa(location: Location) {
-        // SEGURIDAD: No tocar el mapa si no está listo
         if (!::map.isInitialized) return
-
         val p = GeoPoint(location)
         marcador?.let { map.overlays.remove(it) }
         marcador = Marker(map).apply { position = p; title="Yo"; setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM) }
@@ -354,12 +407,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
     private fun resetearDatos() {
         primeraLocalizacion = null; tiempoInicio = System.currentTimeMillis()
         distanciaTotal = 0f; velocidadMaxima = 0f; velocidadActual = 0f
-
         if (::map.isInitialized) {
             rutaOverlay?.setPoints(mutableListOf())
             map.invalidate()
         }
-
         metaDistanciaMetros = 0; metaTiempoMinutos = 0; txtMeta.visibility = View.GONE
         Toast.makeText(this, "Reset OK", Toast.LENGTH_SHORT).show()
     }
@@ -379,28 +430,25 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000L, 0f, this) } catch (_: SecurityException) {}
     }
     private fun inicializarVoz() { tts = TextToSpeech(this) { if (it == TextToSpeech.SUCCESS) { tts?.language = Locale.forLanguageTag("es-ES"); ttsListo = true } } }
-    private fun reiniciarVoz() { detenerVoz(); if(!switchVoz.isChecked) return; tareaVoz = object : Runnable { override fun run() { if(ttsListo && primeraLocalizacion!=null) tts?.speak("Distancia: %.0f m".format(distanciaTotal), 0, null, null); handlerMensajes.postDelayed(this, 60000) } }; handlerMensajes.post(tareaVoz!!) }
+    private fun reiniciarVoz() { detenerVoz(); if(!vozActivada) return; tareaVoz = object : Runnable { override fun run() { if(ttsListo && primeraLocalizacion!=null) tts?.speak("Distancia: %.0f m".format(distanciaTotal), 0, null, null); handlerMensajes.postDelayed(this, 60000) } }; handlerMensajes.post(tareaVoz!!) }
     private fun detenerVoz() { tareaVoz?.let { handlerMensajes.removeCallbacks(it) } }
 
     override fun onSensorChanged(event: SensorEvent?) {
         if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
             val x = event.values[0]; val y = event.values[1]; val z = event.values[2]
             val mag = Math.sqrt((x*x + y*y + z*z).toDouble())
-            val umbral = inputUmbral.text.toString().toDoubleOrNull() ?: 20.0
-            if (mag > umbral) {
+            if (mag > umbralCaida) {
                 val ahora = System.currentTimeMillis()
                 if (ahora - ultimoAvisoAccidente > 5000) {
-                    if (switchVoz.isChecked && ttsListo) tts?.speak("Caída", 0, null, null)
-                    if (switchVibracion.isChecked) vibrar()
+                    if (vozActivada && ttsListo) tts?.speak("Caída", 0, null, null)
+                    if (vibracionActivada) vibrar()
                     lanzarNotificacion(ultimaLocalizacion); ultimoAvisoAccidente = ahora
                 }
             }
-            visualizador.text = "X:%.1f Y:%.1f Z:%.1f".format(x, y, z)
         }
     }
 
     private fun vibrar() {
-        // Vibrador corregido para evitar warnings
         val v = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             (getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator
         } else {
@@ -426,61 +474,33 @@ class MainActivity : AppCompatActivity(), SensorEventListener, LocationListener 
         requestPermissionLauncher.launch(p.toTypedArray())
     }
 
-    // FIX
     private fun esUbicacionValida(nueva: Location, vieja: Location?): Boolean {
         if (vieja == null) return true
-
-        // 1. Filtrar por precisión (Accuracy)
-        // Si la precisión es peor que 30 metros, es probable que sea ruido
         if (nueva.accuracy > 30) return false
-
-        // 2. Filtrar por velocidad irreal (Salto de distancia)
-        val distancia = vieja.distanceTo(nueva) // metros
-        val tiempo = (nueva.time - vieja.time) / 1000.0 // segundos
-
+        val distancia = vieja.distanceTo(nueva)
+        val tiempo = (nueva.time - vieja.time) / 1000.0
         if (tiempo <= 0) return false
-
-        val velocidadVeloz = distancia / tiempo // m/s
-
-        // Si el usuario se mueve a más de 50 m/s (180 km/h) corriendo, es un error del GPS
-        if (velocidadVeloz > 50.0) return false
-
+        if (distancia / tiempo > 50.0) return false
         return true
     }
     
-    // ==========================================
-    // CICLO DE VIDA (CORREGIDO Y BLINDADO)
-    // ==========================================
     override fun onResume() {
         super.onResume()
         if (accelerometer != null) sensorManager.registerListener(this, accelerometer, 3)
-
-        // ESTA ES LA CORRECCIÓN CLAVE:
-        // Solo reanudamos el mapa si se inicializó correctamente en onCreate
-        if (::map.isInitialized) {
-            map.onResume()
-        }
+        if (::map.isInitialized) map.onResume()
     }
 
     override fun onPause() {
         super.onPause()
         sensorManager.unregisterListener(this)
-
-        // CORRECCIÓN: Chequeo de seguridad
-        if (::map.isInitialized) {
-            map.onPause()
-        }
+        if (::map.isInitialized) map.onPause()
     }
 
     override fun onDestroy() {
         detenerVoz()
         handlerCronometro.removeCallbacksAndMessages(null)
         tts?.shutdown()
-
-        // CORRECCIÓN: Chequeo de seguridad
-        if (::map.isInitialized) {
-            map.onDetach()
-        }
+        if (::map.isInitialized) map.onDetach()
         super.onDestroy()
     }
 
