@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- SECCIÓN PERFIL -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DATOS DE PERFIL"
+            android:textStyle="bold"
+            android:textColor="#333"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Peso (kg):"
+            android:textSize="12sp"
+            android:textColor="#666"/>
+        <EditText
+            android:id="@+id/editPeso"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            android:hint="Ej: 75.0"
+            android:layout_marginBottom="12dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Zancada (metros):"
+            android:textSize="12sp"
+            android:textColor="#666"/>
+        <EditText
+            android:id="@+id/editZancada"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            android:hint="Ej: 0.75"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- SECCIÓN SEGURIDAD -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SEGURIDAD"
+            android:textStyle="bold"
+            android:textColor="#333"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Umbral de Caída (Fuerza G):"
+            android:textSize="12sp"
+            android:textColor="#666"/>
+        <EditText
+            android:id="@+id/editUmbral"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            android:hint="Ej: 20.0"
+            android:layout_marginBottom="12dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Un valor de umbral más bajo es más sensible."
+            android:textSize="10sp"
+            android:textColor="#999"
+            android:layout_marginBottom="16dp"/>
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/dialogSwitchVoz"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Avisos por Voz"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp"/>
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/dialogSwitchVibracion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Vibración en Caída"
+            android:textSize="14sp"
+            android:layout_marginBottom="16dp"/>
+
+    </LinearLayout>
+</ScrollView>
